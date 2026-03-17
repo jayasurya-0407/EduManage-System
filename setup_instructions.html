@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Skills Coaching - Setup & Diagnostics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 30px 15px; }
+        .container { max-width: 900px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px 12px 0 0; padding: 20px; font-weight: 600; }
+        .step { border-left: 4px solid #667eea; padding: 15px; margin-bottom: 15px; background: #f8f9fa; border-radius: 5px; }
+        .step-num { display: inline-block; background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; text-align: center; line-height: 35px; font-weight: bold; margin-right: 10px; }
+        .status-ok { color: #28a745; font-weight: bold; }
+        .status-err { color: #dc3545; font-weight: bold; }
+        .url-button { display: inline-block; margin: 5px 5px 5px 0; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }
+        h2 { color: white; margin-bottom: 20px; }
+        .breadcrumb-item { color: rgba(255,255,255,0.8); }
+        .breadcrumb-item.active { color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="color: white; margin-bottom: 30px; text-align: center;">
+        ⚡ Life Skills Coaching - Setup & Diagnostics Center
+    </h1>
+
+    <!-- Quick Links -->
+    <div class="card mb-4">
+        <div class="card-header">🚀 Quick Access Links</div>
+        <div class="card-body">
+            <h5>Go directly to:</h5>
+            <div>
+                <a href="setup_admin_table.php" class="btn btn-primary btn-sm url-button">Setup Database</a>
+                <a href="debug_login.php" class="btn btn-info btn-sm url-button">Run Diagnostics</a>
+                <a href="login.php" class="btn btn-success btn-sm url-button">Go to Login</a>
+                <a href="admin_login_diagnostic.php" class="btn btn-warning btn-sm url-button">Full Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Fix Guide -->
+    <div class="card">
+        <div class="card-header">👨‍💼 Admin Login Not Working? Follow These Steps</div>
+        <div class="card-body">
+            
+            <!-- Step 1 -->
+            <div class="step">
+                <span class="step-num">1</span>
+                <strong>Start XAMPP & Verify Services</strong>
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li>Open XAMPP Control Panel (usually in taskbar or Start menu)</li>
+                    <li>Click <code>Start</code> for both <strong>Apache</strong> and <strong>MySQL</strong></li>
+                    <li>Wait for both to show "Running" status (green)</li>
+                    <li>✓ If they start → Continue to Step 2</li>
+                    <li>✗ If MySQL won't start → Check if port 3307 is available, or change port in <code>my.ini</code></li>
+                </ul>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step">
+                <span class="step-num">2</span>
+                <strong>Initialize the Database</strong>
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li><a href="setup_admin_table.php" target="_blank" class="btn btn-sm btn-primary">Click Here to Run Setup</a></li>
+                    <li>You should see green messages confirming:
+                        <ul>
+                            <li>✓ Created admins table</li>
+                            <li>✓ Inserted default admin OR already exists</li>
+                        </ul>
+                    </li>
+                    <li>If you see errors → Go to Step 4 for diagnostics</li>
+                </ul>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step">
+                <span class="step-num">3</span>
+                <strong>Test the Login</strong>
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li><a href="login.php" target="_blank" class="btn btn-sm btn-success">Open Login Page</a></li>
+                    <li>Use these credentials:
+                        <ul>
+                            <li><strong>Role:</strong> Select "Admin"</li>
+                            <li><strong>Email:</strong> <code>admin@example.com</code></li>
+                            <li><strong>Password:</strong> <code>admin123</code></li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Log In</strong></li>
+                    <li>✓ Should redirect to Admin Dashboard</li>
+                    <li>✗ If still not working → Go to Step 4</li>
+                </ul>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step">
+                <span class="step-num">4</span>
+                <strong>Run Diagnostics (If Previous Steps Don't Work)</strong>
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li><a href="debug_login.php" target="_blank" class="btn btn-sm btn-info">Open Debug Tool</a></li>
+                    <li>This tool will check:
+                        <ul>
+                            <li>✓ Database connection status</li>
+                            <li>✓ All tables in database</li>
+                            <li>✓ Admin records count</li>
+                            <li>✓ Password verification test</li>
+                            <li>✓ Test login form</li>
+                        </ul>
+                    </li>
+                    <li>Look for ✓ or ✗ icons to identify what's wrong</li>
+                    <li>Follow the recommendations in the red text</li>
+                </ul>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step">
+                <span class="step-num">5</span>
+                <strong>If Still Having Issues - Check These</strong>
+                <ul style="margin-top: 10px; margin-bottom: 0;">
+                    <li><strong>Database Port Mismatch:</strong>
+                        <ul>
+                            <li>Open <code>db.php</code> file in editor</li>
+                            <li>Check port in: <code>mysql:host=127.0.0.1;port=3307</code></li>
+                            <li>Go to XAMPP → MySQL → Config to see actual port</li>
+                            <li>Update port in db.php if different</li>
+                        </ul>
+                    </li>
+                    <li><strong>Clear Browser Cache & Cookies:</strong>
+                        <ul>
+                            <li>Press Ctrl+Shift+Delete in browser</li>
+                            <li>Delete cookies for localhost</li>
+                            <li>Close browser completely and reopen</li>
+                        </ul>
+                    </li>
+                    <li><strong>Check PHP Errors:</strong>
+                        <ul>
+                            <li>Look in XAMPP folder: <code>apache/logs/error.log</code></li>
+                            <li>Or MySQL logs folder</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Troubleshooting Quick Reference -->
+    <div class="card">
+        <div class="card-header">🔧 Troubleshooting Quick Reference</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <tr>
+                    <th>Problem</th>
+                    <th>Likely Cause</th>
+                    <th>Solution</th>
+                </tr>
+                <tr>
+                    <td>Database connection failed</td>
+                    <td>MySQL not running or port wrong</td>
+                    <td>Start MySQL in XAMPP, check port in db.php</td>
+                </tr>
+                <tr>
+                    <td>Setup script shows blank page</td>
+                    <td>PHP error or database issue</td>
+                    <td>Run <code>debug_login.php</code> for details</td>
+                </tr>
+                <tr>
+                    <td>No admin records found</td>
+                    <td>Database not initialized</td>
+                    <td>Run <code>setup_admin_table.php</code></td>
+                </tr>
+                <tr>
+                    <td>Login shows "Invalid credentials"</td>
+                    <td>Wrong email/password or corrupt hash</td>
+                    <td>Try admin@example.com / admin123, or run setup again</td>
+                </tr>
+                <tr>
+                    <td>Login works but redirects to login again</td>
+                    <td>Session not persisting</td>
+                    <td>Clear cookies, check session save path, restart browser</td>
+                </tr>
+                <tr>
+                    <td>Stuck on blank page after login</td>
+                    <td>File permission or PHP error</td>
+                    <td>Check browser console (F12 → Console) for errors</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Important Information -->
+    <div class="card">
+        <div class="card-header">ℹ️ Important Information</div>
+        <div class="card-body">
+            <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; border-left: 4px solid #2196F3;">
+                <h6>Default Admin Account (Created by Setup)</h6>
+                <p><strong>Email:</strong> <code>admin@example.com</code></p>
+                <p><strong>Password:</strong> <code>admin123</code></p>
+                <p><strong>Action:</strong> Change this password immediately after first login via Admin → Change Password</p>
+            </div>
+
+            <div style="background: #fff3e0; padding: 15px; border-radius: 5px; border-left: 4px solid #FF9800; margin-top: 15px;">
+                <h6>⚠️ Database Configuration</h6>
+                <p>XAMPP MySQL runs on <strong>port 3307</strong> by default (not standard 3306)</p>
+                <p>Default credentials: <code>root</code> / (empty password)</p>
+                <p>These are set in <code>db.php</code></p>
+            </div>
+
+            <div style="background: #f3e5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #9C27B0; margin-top: 15px;">
+                <h6>📁 Related Documentation</h6>
+                <ul>
+                    <li><a href="ADMIN_LOGIN_GUIDE.md">Complete Admin Login Guide</a> (open in text editor)</li>
+                    <li><a href="ANALYSIS_REPORT.md">Full Analysis Report</a> (open in text editor)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; color: white; margin-top: 40px;">
+        <p>Life Skills Coaching System - Admin Setup Center</p>
+        <small>Version 1.0 | For issues, check the diagnostic tools above</small>
+    </div>
+
+</div>
+
+</body>
+</html>
