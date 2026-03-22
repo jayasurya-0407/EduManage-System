@@ -1,39 +1,35 @@
 <?php
 
-$host = "127.0.0.1";
-$db   = "life_skills_coaching";
-$user = "root";
-$pass = "";
+// ══════════════════════════════════════════════════════
+//  DATABASE CONFIGURATION
+//  • Local  (XAMPP): use 127.0.0.1, port 3307, root / no password
+//  • InfinityFree  : update the four values below with your
+//    InfinityFree control-panel credentials and remove the
+//    ";port=3307" part (InfinityFree uses the default port 3306)
+// ══════════════════════════════════════════════════════
+
+define('DB_HOST', '127.0.0.1');
+define('DB_NAME', 'life_skills_coaching');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_PORT', '3307');   // Change to 3306 (or remove) on InfinityFree
 
 try {
-    $pdo = new PDO("mysql:host=127.0.0.1;port=3307;dbname=life_skills_coaching;charset=utf8mb4", "root", "");
+    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $pdo = new PDO($dsn, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Auto-create student_courses table if not exists (M:N relationship)
+    // ── Create tables only if they don't already exist ──────────────────────
+
     $pdo->exec("CREATE TABLE IF NOT EXISTS student_courses (
         student_id INT NOT NULL,
-        course_id INT NOT NULL,
+        course_id  INT NOT NULL,
         enrollment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (student_id, course_id),
         FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
-        FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
+        FOREIGN KEY (course_id)  REFERENCES courses(id)          ON DELETE CASCADE
     )");
 
-    // If students still have old course_id column, migrate and drop it
-    $col = $pdo->query("SHOW COLUMNS FROM students LIKE 'course_id'")->rowCount();
-    if ($col > 0) {
-        $pdo->exec("INSERT IGNORE INTO student_courses (student_id, course_id)
-                    SELECT student_id, course_id FROM students WHERE course_id IS NOT NULL");
-        $fkRow = $pdo->query("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
-            WHERE TABLE_SCHEMA='life_skills_coaching' AND TABLE_NAME='students'
-            AND COLUMN_NAME='course_id' AND REFERENCED_TABLE_NAME IS NOT NULL")->fetchColumn();
-        if ($fkRow) {
-            $pdo->exec("ALTER TABLE students DROP FOREIGN KEY `$fkRow`");
-        }
-        $pdo->exec("ALTER TABLE students DROP COLUMN course_id");
-    }
-
-    // ── Feedback table ──
     $pdo->exec("CREATE TABLE IF NOT EXISTS feedback (
         id          INT AUTO_INCREMENT PRIMARY KEY,
         student_id  INT NOT NULL,
@@ -46,7 +42,6 @@ try {
         FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
     )");
 
-    // ── Chat messages table ──
     $pdo->exec("CREATE TABLE IF NOT EXISTS chat_messages (
         id         INT AUTO_INCREMENT PRIMARY KEY,
         student_id INT NOT NULL,
@@ -57,7 +52,6 @@ try {
         FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
     )");
 
-    // ── Broadcast / announcement messages ──
     $pdo->exec("CREATE TABLE IF NOT EXISTS broadcast_messages (
         id         INT AUTO_INCREMENT PRIMARY KEY,
         message    TEXT NOT NULL,
@@ -67,5 +61,4 @@ try {
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
-
 ?>

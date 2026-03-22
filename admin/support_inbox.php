@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_reply'])) {
         $pdo->prepare("UPDATE chat_messages SET is_read = 1 WHERE student_id = ? AND sender = 'student'")
             ->execute([$sid]);
     }
-    header("Location: chat_inbox.php?tab=chat&student=" . $sid);
+    echo "<script>window.location.href='support_inbox.php?tab=chat&student=" . $sid . "';</script>";
     exit;
 }
 
@@ -42,10 +42,7 @@ $students = $pdo->query("
     ORDER BY last_msg DESC, s.name ASC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// Default to first student
-if (!$selId && !empty($students)) {
-    $selId = $students[0]['student_id'];
-}
+
 
 // ── Fetch conversation for selected student ────────────────────────────────────
 $messages = [];
@@ -65,28 +62,28 @@ $broadcasts = $pdo->query("SELECT * FROM broadcast_messages ORDER BY created_at 
 $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='student' AND is_read=0")->fetchColumn();
 ?>
 
-<script>document.getElementById('page-title').textContent = 'Student Chats';</script>
+<script>document.getElementById('page-title').textContent = 'Student Support';</script>
 
 <!-- Page Heading -->
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
     <div>
         <div style="font-size:.72rem;color:#6366f1;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem;">Communication</div>
-        <h2 style="color:#f1f5f9;font-weight:700;margin-bottom:.25rem;">Student Chats</h2>
+        <h2 style="color:#f1f5f9;font-weight:700;margin-bottom:.25rem;">Student Support</h2>
         <p style="color:#64748b;font-size:.85rem;margin:0;">Message individual students or broadcast to everyone.</p>
     </div>
     <!-- Tab Switcher -->
     <div style="display:flex;gap:.5rem;background:#111827;border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:.3rem;">
-        <a href="chat_inbox.php?tab=chat&student=<?= $selId ?>" style="
+        <a href="support_inbox.php?tab=chat&student=<?= $selId ?>" style="
             padding:.5rem 1.2rem;border-radius:9px;font-size:.82rem;font-weight:600;text-decoration:none;
             background:<?= $activeTab==='chat' ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : 'transparent' ?>;
             color:<?= $activeTab==='chat' ? '#fff' : '#64748b' ?>;transition:all .2s;position:relative;
         ">
-            <i class="bi bi-chat-dots me-1"></i>Direct Chat
+            <i class="bi bi-chat-dots me-1"></i>Direct Messages
             <?php if ($totalUnread > 0): ?>
                 <span style="margin-left:.35rem;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;padding:.1em .45em;border-radius:10px;"><?= $totalUnread ?></span>
             <?php endif; ?>
         </a>
-        <a href="chat_inbox.php?tab=broadcast" style="
+        <a href="support_inbox.php?tab=broadcast" style="
             padding:.5rem 1.2rem;border-radius:9px;font-size:.82rem;font-weight:600;text-decoration:none;
             background:<?= $activeTab==='broadcast' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'transparent' ?>;
             color:<?= $activeTab==='broadcast' ? '#fff' : '#64748b' ?>;transition:all .2s;
@@ -147,10 +144,74 @@ $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='stu
 
 <?php else: ?>
 <!-- ═══════════════ DIRECT CHAT TAB ═══════════════ -->
-<div style="display:grid;grid-template-columns:280px 1fr;gap:1.25rem;height:74vh;max-height:700px;">
+<style>
+.chat-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.25rem;
+    height: 74vh;
+    max-height: 700px;
+}
+.chat-list-panel {
+    background: #111827;
+    border: 1px solid rgba(99,102,241,.12);
+    border-radius: 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+.chat-conv-panel {
+    background: #111827;
+    border: 1px solid rgba(99,102,241,.12);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.chat-back-btn {
+    display: none;
+    align-items: center;
+    gap: .5rem;
+    background: none;
+    border: none;
+    color: #a5b4fc;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    margin-right: .5rem;
+}
+@media (max-width: 767px) {
+    .chat-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+    }
+    .chat-list-panel {
+        height: 60vh;
+        max-height: 400px;
+    }
+    .chat-conv-panel {
+        height: 72vh;
+    }
+    .chat-back-btn {
+        display: flex;
+    }
+
+    /* JS-based panel switching */
+    .chat-layout.chat-open .chat-list-panel {
+        display: none;
+    }
+    .chat-layout:not(.chat-open) .chat-conv-panel {
+        display: none;
+    }
+}
+</style>
+
+<div class="chat-layout <?= $selId ? 'chat-open' : '' ?>" id="chatLayout">
 
     <!-- Left: All Students -->
-    <div style="background:#111827;border:1px solid rgba(99,102,241,.12);border-radius:18px;overflow-y:auto;display:flex;flex-direction:column;">
+    <div class="chat-list-panel">
         <div style="padding:.85rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);font-size:.7rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.8px;flex-shrink:0;">
             <i class="bi bi-people me-1"></i>All Students (<?= count($students) ?>)
         </div>
@@ -158,7 +219,7 @@ $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='stu
             $isActive = $selId === (int)$row['student_id'];
             $hasChat  = (int)$row['total_msgs'] > 0;
         ?>
-            <a href="chat_inbox.php?tab=chat&student=<?= $row['student_id'] ?>" style="
+            <a href="support_inbox.php?tab=chat&student=<?= $row['student_id'] ?>" style="
                 display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;
                 background:<?= $isActive ? 'rgba(99,102,241,.15)' : 'transparent' ?>;
                 border-left:3px solid <?= $isActive ? '#6366f1' : 'transparent' ?>;
@@ -187,11 +248,15 @@ $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='stu
     </div>
 
     <!-- Right: Conversation -->
-    <div style="background:#111827;border:1px solid rgba(99,102,241,.12);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;">
+    <div class="chat-conv-panel">
         <?php if ($selStudent): ?>
 
         <!-- Chat Header -->
         <div style="background:linear-gradient(90deg,rgba(99,102,241,.15),rgba(139,92,246,.08));border-bottom:1px solid rgba(99,102,241,.12);padding:.9rem 1.25rem;display:flex;align-items:center;gap:.85rem;flex-shrink:0;">
+            <!-- Mobile back button -->
+            <button class="chat-back-btn" onclick="goBackToList()">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
             <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:700;color:#fff;">
                 <?= strtoupper(substr($selStudent['name'], 0, 1)) ?>
             </div>
@@ -222,7 +287,7 @@ $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='stu
                             <?= strtoupper(substr($selStudent['name'], 0, 1)) ?>
                         </div>
                     <?php endif; ?>
-                    <div style="max-width:65%;">
+                    <div style="max-width:75%;">
                         <div style="
                             background:<?= $isAdmin ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : '#1e293b' ?>;
                             color:<?= $isAdmin ? '#fff' : '#e2e8f0' ?>;
@@ -230,6 +295,7 @@ $totalUnread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='stu
                             border-radius:<?= $isAdmin ? '18px 18px 4px 18px' : '18px 18px 18px 4px' ?>;
                             padding:.6rem .95rem;font-size:.84rem;line-height:1.55;
                             box-shadow:<?= $isAdmin ? '0 4px 14px rgba(99,102,241,.3)' : '0 2px 6px rgba(0,0,0,.2)' ?>;
+                            word-break: break-word;
                         "><?= nl2br(htmlspecialchars($m['message'])) ?></div>
                         <div style="font-size:.63rem;color:#334155;margin-top:.25rem;text-align:<?= $isAdmin ? 'right' : 'left' ?>;">
                             <?= date('M j, g:i A', strtotime($m['created_at'])) ?>
@@ -280,13 +346,55 @@ function handleKey(e) {
     }
 }
 
+function goBackToList() {
+    const layout = document.getElementById('chatLayout');
+    if (layout) layout.classList.remove('chat-open');
+}
+
 let cd = 10;
 const timer = document.getElementById('cdTimer');
-setInterval(() => {
-    cd--;
-    if (timer) timer.textContent = cd;
-    if (cd <= 0) location.reload();
-}, 1000);
+
+// ─── AJAX polling instead of location.reload() (fixes InfinityFree 403) ───────
+<?php if ($selId): ?>
+let lastAdminMsgId = <?= !empty($messages) ? (int)end($messages)['id'] : 0 ?>;
+
+function renderBubble(m) {
+    const isAdmin = m.sender === 'admin';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;justify-content:' + (isAdmin ? 'flex-end' : 'flex-start') + ';';
+    if (!isAdmin) {
+        wrap.innerHTML = `<div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0;margin-right:.45rem;align-self:flex-end;">${m.initials}</div><div style="max-width:75%;"><div style="background:#1e293b;color:#e2e8f0;border:1px solid rgba(99,102,241,.12);border-radius:18px 18px 18px 4px;padding:.6rem .95rem;font-size:.84rem;line-height:1.55;box-shadow:0 2px 6px rgba(0,0,0,.2);word-break:break-word;">${m.message}</div><div style="font-size:.63rem;color:#334155;margin-top:.25rem;">${m.time}</div></div>`;
+    } else {
+        wrap.innerHTML = `<div style="max-width:75%;"><div style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border-radius:18px 18px 4px 18px;padding:.6rem .95rem;font-size:.84rem;line-height:1.55;box-shadow:0 4px 14px rgba(99,102,241,.3);word-break:break-word;">${m.message}</div><div style="font-size:.63rem;color:#334155;margin-top:.25rem;text-align:right;">${m.time}</div></div><div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;flex-shrink:0;margin-left:.45rem;align-self:flex-end;"><i class="bi bi-shield-person-fill"></i></div>`;
+    }
+    cb.appendChild(wrap);
+    cb.scrollTop = cb.scrollHeight;
+}
+
+function pollAdminChat() {
+    fetch('admin_support_poll.php?student=<?= $selId ?>&last=' + lastAdminMsgId)
+        .then(r => r.json())
+        .then(data => {
+            if (data && data.messages && data.messages.length > 0) {
+                data.messages.forEach(m => {
+                    renderBubble(m);
+                    if (m.id > lastAdminMsgId) lastAdminMsgId = m.id;
+                });
+                if (timer) { cd = 10; timer.textContent = cd; }
+            }
+        })
+        .catch(() => {});
+}
+
+if (timer) {
+    setInterval(() => {
+        cd--;
+        if (cd <= 0) { cd = 10; }
+        timer.textContent = cd;
+    }, 1000);
+}
+setInterval(pollAdminChat, 8000);
+<?php endif; ?>
 </script>
 <?php endif; ?>
 

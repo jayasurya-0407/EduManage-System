@@ -11,6 +11,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const txt = activeLink.textContent.trim();
         if (txt) pageTitle.textContent = txt;
     }
+
+    // Mobile Sidebar Toggle
+    const mobileToggleBtn = document.getElementById('mobileToggleBtn');
+    const sidebar = document.querySelector('.admin-sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (mobileToggleBtn && sidebar && overlay) {
+        mobileToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+    }
 });
 
 function toggleAdminProfile(e) {

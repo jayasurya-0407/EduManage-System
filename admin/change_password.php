@@ -14,7 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute([$_SESSION['admin_id']]);
     $admin = $stmt->fetch();
 
-    if (!$admin || $current_password !== $admin['password']) {
+    $isValid = false;
+    if ($admin) {
+        $isValid = password_verify($current_password, $admin['password']) || $current_password === $admin['password'];
+    }
+
+    if (!$isValid) {
         $message = "Incorrect current password.";
         $message_type = "danger";
     } elseif ($new_password !== $confirm_password) {
@@ -24,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $message = "New password must be at least 6 characters long.";
         $message_type = "danger";
     } else {
-        // Store new password as plain text (no hashing)
-        $updated_password = $new_password;
+        // Hash the new password before storing
+        $updated_password = password_hash($new_password, PASSWORD_DEFAULT);
         try {
             $upd_stmt = $pdo->prepare("UPDATE admins SET password = ? WHERE id = ?");
             $upd_stmt->execute([$updated_password, $_SESSION['admin_id']]);

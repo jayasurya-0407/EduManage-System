@@ -244,11 +244,59 @@ $current_page = basename($_SERVER['PHP_SELF']);
         /* Progress bar */
         .progress { background: rgba(255,255,255,.06); border-radius: 10px; }
         .progress-bar { background: linear-gradient(90deg,#6366f1,#8b5cf6); border-radius: 10px; }
+
+        /* Mobile Responsiveness */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #f1f5f9;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin-right: 1rem;
+        }
+
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+            }
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            .admin-main {
+                margin-left: 0;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .admin-topbar {
+                padding: .875rem 1rem;
+            }
+            .admin-content {
+                padding: 1rem;
+            }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(3px);
+                z-index: 1035;
+            }
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
     </style>
 
 </head>
 <body>
 <div class="admin-layout">
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
     <aside class="admin-sidebar">
@@ -337,23 +385,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </ul>
 
         <div class="sidebar-section-label">Communication</div>
-        <ul class="sidebar-nav">
-            <li class="nav-item">
-                <a href="feedback_inbox.php" class="nav-link <?= $current_page=='feedback_inbox.php' ? 'active' : '' ?>">
-                    <i class="bi bi-envelope-open-fill"></i> Feedback Inbox
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="chat_inbox.php" class="nav-link <?= $current_page=='chat_inbox.php' ? 'active' : '' ?>">
-                    <i class="bi bi-chat-dots-fill"></i> Student Chats
-                    <?php
-                    $unreadTotal = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='student' AND is_read=0")->fetchColumn();
-                    if ($unreadTotal > 0): ?>
-                        <span style="margin-left:auto;background:#ef4444;color:#fff;font-size:.6rem;font-weight:700;padding:.15em .5em;border-radius:10px;"><?= $unreadTotal ?></span>
-                    <?php endif; ?>
-                </a>
-            </li>
-        </ul>
+            <ul class="nav flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="feedback_inbox.php" class="nav-link <?= $current_page == 'feedback_inbox.php' ? 'active' : '' ?>">
+                        <i class="bi bi-envelope-open"></i> Feedback Inbox
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="support_inbox.php" class="nav-link <?= $current_page == 'support_inbox.php' ? 'active' : '' ?>">
+                        <i class="bi bi-chat-dots"></i> Student Chats
+                        <?php
+                        $unread_chats = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='student' AND is_read=0")->fetchColumn();
+                        if ($unread_chats > 0): ?>
+                            <span class="badge bg-danger ms-2 rounded-pill"><?= $unread_chats ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
+            </ul>
 
         <div class="sidebar-footer">
             <a href="logout.php" class="nav-link">
@@ -366,7 +414,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="admin-main">
         <!-- Top Bar -->
         <header class="admin-topbar">
-            <span class="topbar-title" id="page-title">Dashboard</span>
+            <div style="display: flex; align-items: center;">
+                <button class="mobile-toggle" id="mobileToggleBtn">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="topbar-title" id="page-title">Dashboard</span>
+            </div>
             <div class="d-flex align-items-center gap-3">
                 <!-- Admin Profile Dropdown -->
                 <div id="adminProfileWrap" style="position:relative;">
@@ -412,10 +465,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <a href="change_password.php" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1.2rem;font-size:.84rem;font-weight:500;color:#94a3b8;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='rgba(99,102,241,.1)';this.style.color='#c7d2fe'" onmouseout="this.style.background='transparent';this.style.color='#94a3b8'">
                                 <i class="bi bi-key" style="font-size:1rem;width:20px;text-align:center;color:#fbbf24;"></i> Change Password
                             </a>
-                            <a href="chat_inbox.php" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1.2rem;font-size:.84rem;font-weight:500;color:#94a3b8;text-decoration:none;transition:all .15s;justify-content:space-between;" onmouseover="this.style.background='rgba(99,102,241,.1)';this.style.color='#c7d2fe'" onmouseout="this.style.background='transparent';this.style.color='#94a3b8'">
-                                <span style="display:flex;align-items:center;gap:.75rem;">
-                                    <i class="bi bi-chat-dots-fill" style="font-size:1rem;width:20px;text-align:center;color:#34d399;"></i> Student Chats
-                                </span>
+                            <a href="support_inbox.php" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1.2rem;font-size:.84rem;font-weight:500;color:#94a3b8;text-decoration:none;transition:all .15s;justify-content:space-between;" onmouseover="this.style.background='rgba(99,102,241,.1)';this.style.color='#c7d2fe'" onmouseout="this.style.background='transparent';this.style.color='#94a3b8'">
+                                <div><i class="bi bi-chat-dots me-2 text-warning"></i>Messages</div>
                                 <?php
                                 $_unread = $pdo->query("SELECT COUNT(*) FROM chat_messages WHERE sender='student' AND is_read=0")->fetchColumn();
                                 if ($_unread > 0): ?>
